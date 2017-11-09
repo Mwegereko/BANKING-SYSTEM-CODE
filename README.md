@@ -180,4 +180,106 @@ for sc in CS_cb2:
 # ACCOUNT
 CB1 = Customer(cb1,55848,"Kisya Moses","Kalangala","+256780589893","98556601111254")
 CB1_A = Account(CB1,25004,1)
+class CLIMenu(object):
+
+    def __init__(self, options: list):
+        self.options=options
+
+    def PrintCLIMenu(self):
+        print('=' * 30, '\t WELCOME TO CEDAT BANK\n\tWe Are Here To Serve You\n\t\tTELLER1', '=' * 30, sep='\n')
+        print("Branch:WANDEGEYA\nBankID:10002746889")
+        print("PLEASE CHOOSE THE DESIRED OPTION BELOW :\n ", *self.options,
+              sep='\n')
+        print()
+    def GetUserInput(self):
+        return input(">>>: ")
+def RegisterCustomer():
+    RegisterCustomerForm = [input("NATIONAL ID NUMBER : "), input("YOUR FULL NAME: "),
+                                input("DATE OF BIRTH (DD/MM/YYYY) : "),
+                                input("HOME TOWN: "), input("PHONE NUMBER : "), input("VALID EMAIL ADDRESS : ")]
+    cursor.execute("INSERT into customer VALUES(?,?,?,?,?,?)", *RegisterCustomerForm)
+    cnxn.commit()
+    print("REGISTRATION SUCCESSFUL")
+    cursor.execute("INSERT into account VALUES(?,?,0)", RegisterCustomerForm[0], RegisterCustomerForm[1])
+    cnxn.commit()
+    
+    def  ViewCustomer():
+        CustToView=input("PLEASE ENTER THE NATIONAL IDENTITY CARD NUMBER OF THE CUSTOMER YOU WISH TO VIEW : ")
+        cursor.execute("SELECT * FROM customer WHERE Cust_NIC=?",CustToView)
+        columns = [column[0] for column in cursor.description]
+        print('\t'.join(str(i) for i in columns),end="")
+        print('\n')
+        for row in cursor.fetchall():
+            print ('\t'.join(str(j)for j in row))
+        input("\n==========PRESS ENTER KEY TO RETURN TO THE PREVIOUS MENU==========")
+
+    def ViewAllCustomers():
+        cursor.execute("SELECT * FROM customer") 
+    columns = [column[0] for column in cursor.description]
+    print('\t'.join(str(i) for i in columns), end="")
+    print('\n')
+    for row in cursor.fetchall():
+        print('\t'.join(str(j) for j in row))
+    input("\n==========PRESS ENTER KEY TO RETURN TO THE PREVIOUS MENU==========")
+    
+class Transaction:
+
+    def __init__(self,acct,amt):
+        self.acct=acct
+        self.amt=amt
+
+    def Deposit(self):
+        cursor.execute("UPDATE account SET Acct_Bal=Acct_Bal+? WHERE Acct_NO=?",self.amt,self.acct)
+        cnxn.commit()
+        print("YOU'VE DEPOSITED %s TO ACCOUNT NUMBER %s" % (self.amt,self.acct))
+    def Withdrawal(self):
+        cursor.execute("UPDATE account SET Acct_Bal=Acct_Bal-? WHERE Acct_NO=?",self.amt,self.acct)
+        cnxn.commit()
+        print("YOU'VE  WITHDRAWN  %s FROM ACCOUNT NUMBER %s" % (self.amt, self.acct))
+
+
+if __name__=='__main__':
+     while True:
+        MainMenu=CLIMenu(['\t1.ACCESS CUSTOMER DETAILS','\t2.ACCESS TRANSACTION PORTAL','\t3.EXIT'])
+        MainMenu.PrintCLIMenu()
+        UserInput=MainMenu.GetUserInput()
+        if UserInput =='1':
+            while True:
+                CustomerMenu = CLIMenu(['\t1.REGISTER CUSTOMER', '\t2.VIEW CUSTOMER',
+                                              '\t3.VIEW ALL CUSTOMERS','\t4.GO TO PREVIOUS MENU'])
+                CustomerMenu.PrintCLIMenu()
+                UserInput=CustomerMenu.GetUserInput()
+                if UserInput == '1':
+                    RegisterCustomer()
+                    continue
+                if UserInput == '2':
+                    ViewCustomer()
+                    continue
+                if UserInput == '3':
+                    ViewAllCustomers()
+                    continue
+                if UserInput == '4':
+                    break
+        elif UserInput == '2':
+            AcctToTransact=input("PLEASE ENTER THE ACCOUNT NUMBER : ")
+            AmtToTransact=input("PLEASE ENTER THE TRANSACTION AMOUNT : ")
+            trnsct=Transaction(AcctToTransact,AmtToTransact)
+            TransactionMenu = CLIMenu(['\t1.DEPOSIT MONEY',
+                                             '\t2.WITHDRAW MONEY', '\t3.GO TO PREVIOUS MENU'])
+            TransactionMenu.PrintCLIMenu()
+            UserInput = TransactionMenu.GetUserInput()
+            if UserInput == '1':
+                trnsct.Deposit()
+                continue
+            if UserInput == '2':
+                trnsct.Withdrawal()
+                continue
+            if UserInput == '3':
+                continue
+        elif UserInput == '3':
+            break
+
+cnxn.close()
+quit()
+
 
